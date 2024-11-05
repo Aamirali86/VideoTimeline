@@ -14,6 +14,7 @@
 		2560BD862CD93E60009CE7F3 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2560BD852CD93E60009CE7F3 /* Assets.xcassets */; };
 		2560BD892CD93E60009CE7F3 /* Base in Resources */ = {isa = PBXBuildFile; fileRef = 2560BD882CD93E60009CE7F3 /* Base */; };
 		2560BD932CD97D6D009CE7F3 /* TimelineViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2560BD922CD97D6D009CE7F3 /* TimelineViewModel.swift */; };
+		2560BD982CD986C1009CE7F3 /* TimelineView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2560BD972CD986C1009CE7F3 /* TimelineView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -26,6 +27,7 @@
 		2560BD882CD93E60009CE7F3 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		2560BD8A2CD93E60009CE7F3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		2560BD922CD97D6D009CE7F3 /* TimelineViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimelineViewModel.swift; sourceTree = "<group>"; };
+		2560BD972CD986C1009CE7F3 /* TimelineView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimelineView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -58,6 +60,7 @@
 		2560BD7B2CD93E5F009CE7F3 /* VideoTimeline */ = {
 			isa = PBXGroup;
 			children = (
+				2560BD962CD986B4009CE7F3 /* CustomViews */,
 				2560BD912CD93EFE009CE7F3 /* Scenes */,
 				2560BD902CD93EA6009CE7F3 /* Resources */,
 				2560BD7C2CD93E5F009CE7F3 /* AppDelegate.swift */,
@@ -84,6 +87,14 @@
 				2560BD922CD97D6D009CE7F3 /* TimelineViewModel.swift */,
 			);
 			path = Scenes;
+			sourceTree = "<group>";
+		};
+		2560BD962CD986B4009CE7F3 /* CustomViews */ = {
+			isa = PBXGroup;
+			children = (
+				2560BD972CD986C1009CE7F3 /* TimelineView.swift */,
+			);
+			path = CustomViews;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -160,6 +171,7 @@
 				2560BD812CD93E5F009CE7F3 /* VideoTimelineController.swift in Sources */,
 				2560BD932CD97D6D009CE7F3 /* TimelineViewModel.swift in Sources */,
 				2560BD7D2CD93E5F009CE7F3 /* AppDelegate.swift in Sources */,
+				2560BD982CD986C1009CE7F3 /* TimelineView.swift in Sources */,
 				2560BD7F2CD93E5F009CE7F3 /* SceneDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
