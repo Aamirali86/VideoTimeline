@@ -27,6 +27,7 @@ private extension VideoTimelinePagerController {
     }
     
     func createPages() {
+        // total number of pages
         for i in 0..<5 {
             let page = PageContentController()
             page.pageIndex = i

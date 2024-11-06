@@ -20,17 +20,21 @@ final class TrimmingHandlerView: UIView {
         didSet { updateLayout() }
     }
 
+    // Handler gestures
     private let startThumbPanGesture = UIPanGestureRecognizer()
     private let endThumbPanGesture = UIPanGestureRecognizer()
-    
+
+    // Maintaining the state of trimming handlers
     private var initialStartThumbX: CGFloat = 0
     private var initialEndThumbX: CGFloat = 0
 
+    // Trimming view border layers
     private let topBorderLayer = CALayer()
     private let bottomBorderLayer = CALayer()
     private let leftBorderLayer = CALayer()
     private let rightBorderLayer = CALayer()
     
+    // Added white/yellow boundry over trimming view
     private let topBoundaryLayer = CALayer()
     private let bottomBoundaryLayer = CALayer()
     private let startThumbView = UIView()
@@ -38,6 +42,7 @@ final class TrimmingHandlerView: UIView {
     
     private let handleWidth: CGFloat = 20.0
     private let handleHeight: CGFloat = 68.0
+    
     // Minimum distance between handlers to avoid intersaction
     private let minimumTrimLength: CGFloat = 0.2
 
