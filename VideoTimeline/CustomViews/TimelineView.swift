@@ -56,6 +56,8 @@ private extension TimelineView {
     
     func setupTrimmingHandlerView() {
         previewStackView.addSubview(trimmingHandlerView)
+        bringSubviewToFront(previewStackView)
+        
         trimmingHandlerView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
             trimmingHandlerView.leadingAnchor.constraint(equalTo: previewStackView.leadingAnchor),
@@ -115,7 +117,7 @@ private extension TimelineView {
 private extension TimelineView {
     @objc private func handlePinchGesture(_ sender: UIPinchGestureRecognizer) {
         if sender.state == .changed {
-            let currentScale = self.frame.size.width / self.bounds.size.width
+            let currentScale = overlayView.frame.size.width / overlayView.bounds.size.width
             var newScale = sender.scale * currentScale
             
             // Prevent zooming out below the original size
@@ -124,7 +126,7 @@ private extension TimelineView {
             }
             
             let transform = CGAffineTransform(scaleX: newScale, y: newScale)
-            self.transform = transform
+            overlayView.transform = transform
             sender.scale = 1.0
         }
     }
