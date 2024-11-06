@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		255ADD172CDBD8240005E3E0 /* VideoTimelinePagerController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 255ADD162CDBD8240005E3E0 /* VideoTimelinePagerController.swift */; };
+		255ADD192CDBDB610005E3E0 /* PageContentController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 255ADD182CDBDB610005E3E0 /* PageContentController.swift */; };
 		2560BD7D2CD93E5F009CE7F3 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2560BD7C2CD93E5F009CE7F3 /* AppDelegate.swift */; };
 		2560BD7F2CD93E5F009CE7F3 /* SceneDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2560BD7E2CD93E5F009CE7F3 /* SceneDelegate.swift */; };
 		2560BD812CD93E5F009CE7F3 /* VideoTimelineController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2560BD802CD93E5F009CE7F3 /* VideoTimelineController.swift */; };
@@ -19,6 +21,8 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		255ADD162CDBD8240005E3E0 /* VideoTimelinePagerController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoTimelinePagerController.swift; sourceTree = "<group>"; };
+		255ADD182CDBDB610005E3E0 /* PageContentController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PageContentController.swift; sourceTree = "<group>"; };
 		2560BD792CD93E5F009CE7F3 /* VideoTimeline.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = VideoTimeline.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		2560BD7C2CD93E5F009CE7F3 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		2560BD7E2CD93E5F009CE7F3 /* SceneDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SceneDelegate.swift; sourceTree = "<group>"; };
@@ -87,6 +91,8 @@
 				2560BD802CD93E5F009CE7F3 /* VideoTimelineController.swift */,
 				2560BD822CD93E5F009CE7F3 /* VideoTimelineController.storyboard */,
 				2560BD922CD97D6D009CE7F3 /* TimelineViewModel.swift */,
+				255ADD162CDBD8240005E3E0 /* VideoTimelinePagerController.swift */,
+				255ADD182CDBDB610005E3E0 /* PageContentController.swift */,
 			);
 			path = Scenes;
 			sourceTree = "<group>";
@@ -173,9 +179,11 @@
 			files = (
 				2560BD812CD93E5F009CE7F3 /* VideoTimelineController.swift in Sources */,
 				2560BD932CD97D6D009CE7F3 /* TimelineViewModel.swift in Sources */,
+				255ADD192CDBDB610005E3E0 /* PageContentController.swift in Sources */,
 				25941AD92CDABA8700CD3209 /* TrimmingHandlerView.swift in Sources */,
 				2560BD7D2CD93E5F009CE7F3 /* AppDelegate.swift in Sources */,
 				2560BD982CD986C1009CE7F3 /* TimelineView.swift in Sources */,
+				255ADD172CDBD8240005E3E0 /* VideoTimelinePagerController.swift in Sources */,
 				2560BD7F2CD93E5F009CE7F3 /* SceneDelegate.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

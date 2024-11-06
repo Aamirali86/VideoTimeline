@@ -9,26 +9,27 @@ import UIKit
 
 final class VideoTimelineController: UIViewController {
     var viewModel: VideoTimelineViewModel!
-    private let timelineView = TimelineView()
+    private let pagerController = VideoTimelinePagerController(transitionStyle: .scroll, navigationOrientation: .horizontal)
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        // Do any additional setup after loading the view.
-        setupTimelineView()
+        addPagerController()
     }
 }
 
 // MARK: UI setup
 private extension VideoTimelineController {
-    func setupTimelineView() {
-        view.addSubview(timelineView)
+    func addPagerController() {
+        addChild(pagerController)
+        view.addSubview(pagerController.view)
+        pagerController.didMove(toParent: self)
         
-        timelineView.translatesAutoresizingMaskIntoConstraints = false
+        pagerController.view.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            timelineView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            timelineView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            timelineView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
-            timelineView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20)
+            pagerController.view.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            pagerController.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            pagerController.view.bottomAnchor.constraint(equalTo: view.bottomAnchor),
+            pagerController.view.topAnchor.constraint(equalTo: view.topAnchor)
         ])
     }
 }
