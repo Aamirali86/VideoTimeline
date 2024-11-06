@@ -9,7 +9,7 @@ import Foundation
 import UIKit
 
 final class TimelineView: UIView {
-    private let previewScrollView = UIScrollView()
+    private let trimmingHandlerView = TrimmingHandlerView()
     private let previewStackView = UIStackView()
     // added overlay that will handle all the gestures
     private let overlayView = UIView()
@@ -18,6 +18,7 @@ final class TimelineView: UIView {
         super.init(frame: frame)
         setupView()
         setupOverlayView()
+        setupTrimmingHandlerView()
         setupGestures()
     }
 
@@ -25,6 +26,7 @@ final class TimelineView: UIView {
         super.init(coder: coder)
         setupView()
         setupOverlayView()
+        setupTrimmingHandlerView()
         setupGestures()
     }
 }
@@ -35,30 +37,32 @@ private extension TimelineView {
         backgroundColor = .lightGray
         layer.cornerRadius = 8
 
-        previewScrollView.showsHorizontalScrollIndicator = false
         previewStackView.axis = .horizontal
         previewStackView.distribution = .fillEqually
         previewStackView.spacing = 0
 
-        addSubview(previewScrollView)
-        previewScrollView.addSubview(previewStackView)
+        addSubview(previewStackView)
 
-        previewScrollView.translatesAutoresizingMaskIntoConstraints = false
         previewStackView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            previewScrollView.leadingAnchor.constraint(equalTo: leadingAnchor),
-            previewScrollView.trailingAnchor.constraint(equalTo: trailingAnchor),
-            previewScrollView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -10),
-            previewScrollView.heightAnchor.constraint(equalToConstant: 60),
-
-            previewStackView.leadingAnchor.constraint(equalTo: previewScrollView.leadingAnchor),
-            previewStackView.trailingAnchor.constraint(equalTo: previewScrollView.trailingAnchor),
-            previewStackView.topAnchor.constraint(equalTo: previewScrollView.topAnchor),
-            previewStackView.bottomAnchor.constraint(equalTo: previewScrollView.bottomAnchor),
-            previewStackView.heightAnchor.constraint(equalTo: previewScrollView.heightAnchor)
+            previewStackView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 10),
+            previewStackView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -10),
+            previewStackView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -10),
+            previewStackView.heightAnchor.constraint(equalToConstant: 60)
         ])
-
+        
         addPreviewBoxes()
+    }
+    
+    func setupTrimmingHandlerView() {
+        previewStackView.addSubview(trimmingHandlerView)
+        trimmingHandlerView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            trimmingHandlerView.leadingAnchor.constraint(equalTo: previewStackView.leadingAnchor),
+            trimmingHandlerView.trailingAnchor.constraint(equalTo: previewStackView.trailingAnchor),
+            trimmingHandlerView.topAnchor.constraint(equalTo: previewStackView.topAnchor),
+            trimmingHandlerView.bottomAnchor.constraint(equalTo: previewStackView.bottomAnchor)
+        ])
     }
     
     func setupOverlayView() {
@@ -84,7 +88,7 @@ private extension TimelineView {
     }
 
     func addPreviewBoxes() {
-        for _ in 0..<20 { // Add 20 preview boxes
+        for _ in 0..<15 { // Add 15 preview boxes
             let previewBox = UIView()
             previewBox.backgroundColor = randomColor()
             previewBox.layer.cornerRadius = 0
