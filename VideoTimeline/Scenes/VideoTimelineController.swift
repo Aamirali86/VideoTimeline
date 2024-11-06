@@ -8,7 +8,6 @@
 import UIKit
 
 final class VideoTimelineController: UIViewController {
-    var viewModel: VideoTimelineViewModel!
     private let pagerController = VideoTimelinePagerController(transitionStyle: .scroll, navigationOrientation: .horizontal)
     
     override func viewDidLoad() {

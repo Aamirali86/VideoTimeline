@@ -41,10 +41,10 @@ private extension PageContentController {
         view.addSubview(timelineView)
         timelineView.translatesAutoresizingMaskIntoConstraints = false
         NSLayoutConstraint.activate([
-            timelineView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            timelineView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            timelineView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: -20),
-            timelineView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 20)
+            timelineView.leadingAnchor.constraint(equalTo: view.leadingAnchor),
+            timelineView.trailingAnchor.constraint(equalTo: view.trailingAnchor),
+            timelineView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor),
+            timelineView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor)
         ])
     }
     

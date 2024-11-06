@@ -34,7 +34,6 @@ final class TimelineView: UIView {
 // MARK: Setup UI
 private extension TimelineView {
     func setupView() {
-        backgroundColor = .lightGray
         layer.cornerRadius = 8
 
         previewStackView.axis = .horizontal
@@ -47,7 +46,7 @@ private extension TimelineView {
         NSLayoutConstraint.activate([
             previewStackView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 10),
             previewStackView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -10),
-            previewStackView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -10),
+            previewStackView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -20),
             previewStackView.heightAnchor.constraint(equalToConstant: 60)
         ])
         
@@ -77,7 +76,7 @@ private extension TimelineView {
             overlayView.leadingAnchor.constraint(equalTo: leadingAnchor),
             overlayView.trailingAnchor.constraint(equalTo: trailingAnchor),
             overlayView.topAnchor.constraint(equalTo: topAnchor),
-            overlayView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -80)
+            overlayView.bottomAnchor.constraint(equalTo: bottomAnchor)
         ])
     }
 
@@ -90,9 +89,9 @@ private extension TimelineView {
     }
 
     func addPreviewBoxes() {
-        for _ in 0..<15 { // Add 15 preview boxes
+        for i in 0..<15 { // Add 15 preview boxes
             let previewBox = UIView()
-            previewBox.backgroundColor = randomColor()
+            previewBox.backgroundColor = i == 0 || i == 14 ? .clear : randomColor()
             previewBox.layer.cornerRadius = 0
             previewBox.clipsToBounds = true
             previewStackView.addArrangedSubview(previewBox)

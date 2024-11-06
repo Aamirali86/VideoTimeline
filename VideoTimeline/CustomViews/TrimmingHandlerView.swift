@@ -15,7 +15,7 @@ final class TrimmingHandlerView: UIView {
     var startValue: CGFloat = 0 {
         didSet { updateLayout() }
     }
-        
+
     var endValue: CGFloat = 1 {
         didSet { updateLayout() }
     }
@@ -26,13 +26,18 @@ final class TrimmingHandlerView: UIView {
     private var initialStartThumbX: CGFloat = 0
     private var initialEndThumbX: CGFloat = 0
 
+    private let topBorderLayer = CALayer()
+    private let bottomBorderLayer = CALayer()
+    private let leftBorderLayer = CALayer()
+    private let rightBorderLayer = CALayer()
+    
     private let topBoundaryLayer = CALayer()
     private let bottomBoundaryLayer = CALayer()
     private let startThumbView = UIView()
     private let endThumbView = UIView()
     
     private let handleWidth: CGFloat = 20.0
-    private let handleHeight: CGFloat = 64.0
+    private let handleHeight: CGFloat = 68.0
     // Minimum distance between handlers to avoid intersaction
     private let minimumTrimLength: CGFloat = 0.2
 
@@ -68,6 +73,18 @@ private extension TrimmingHandlerView {
         
         endThumbView.backgroundColor = UIColor.white
         addSubview(endThumbView)
+        
+        topBorderLayer.backgroundColor = UIColor.black.cgColor
+        layer.addSublayer(topBorderLayer)
+        
+        bottomBorderLayer.backgroundColor = UIColor.black.cgColor
+        layer.addSublayer(bottomBorderLayer)
+        
+        leftBorderLayer.backgroundColor = UIColor.black.cgColor
+        layer.addSublayer(leftBorderLayer)
+        
+        rightBorderLayer.backgroundColor = UIColor.black.cgColor
+        layer.addSublayer(rightBorderLayer)
         
         updateFrames()
         addImage(handle: startThumbView, leading: true)
@@ -115,19 +132,25 @@ private extension TrimmingHandlerView {
     func updateFrames() {
         let startThumb = positionForValue(startValue)
         let endThumb = positionForValue(endValue)
+        let maxWidth = positionForValue(1)
         
         // Disable implicit animations
         CATransaction.begin()
         CATransaction.setDisableActions(true)
         
-        startThumbView.frame = CGRect(x: startThumb, y: 0, width: handleWidth, height: handleHeight)
-        endThumbView.frame = CGRect(x: endThumb - handleWidth, y: 0, width: handleWidth, height: handleHeight)
+        startThumbView.frame = CGRect(x: startThumb, y: -4, width: handleWidth, height: handleHeight)
+        endThumbView.frame = CGRect(x: endThumb - handleWidth, y: -4, width: handleWidth, height: handleHeight)
         
         let boundaryWidth = endThumb - startThumb
-        topBoundaryLayer.frame = CGRect(x: startThumb, y: 0, width: boundaryWidth, height: 4)
+        topBoundaryLayer.frame = CGRect(x: startThumb, y: -4, width: boundaryWidth, height: 4)
         bottomBoundaryLayer.frame = CGRect(x: startThumb, y: bounds.height, width: boundaryWidth, height: 4)
         
         CATransaction.commit()
+        
+        topBorderLayer.frame = CGRect(x: handleWidth, y: -2, width: maxWidth - (handleWidth * 2), height: 2)
+        bottomBorderLayer.frame = CGRect(x: handleWidth, y: bounds.height, width: maxWidth - (handleWidth * 2), height: 2)
+        leftBorderLayer.frame = CGRect(x: handleWidth, y: 0, width: 2, height: 60)
+        rightBorderLayer.frame = CGRect(x: maxWidth - handleWidth, y: -2, width: 2, height: 64)
     }
     
     func updateLayout() {
