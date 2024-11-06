@@ -20,12 +20,16 @@ final class TrimmingHandlerView: UIView {
         didSet { updateLayout() }
     }
 
+    private let startThumbPanGesture = UIPanGestureRecognizer()
+    private let endThumbPanGesture = UIPanGestureRecognizer()
+    
+    private var initialStartThumbX: CGFloat = 0
+    private var initialEndThumbX: CGFloat = 0
+
     private let topBoundaryLayer = CALayer()
     private let bottomBoundaryLayer = CALayer()
     private let startThumbView = UIView()
     private let endThumbView = UIView()
-    private var isTouchingStartThumb = false
-    private var isTouchingEndThumb = false
     
     private let handleWidth: CGFloat = 20.0
     private let handleHeight: CGFloat = 64.0
@@ -35,11 +39,13 @@ final class TrimmingHandlerView: UIView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupLayers()
+        setupGestures()
     }
     
     required init?(coder: NSCoder) {
         super.init(coder: coder)
         setupLayers()
+        setupGestures()
     }
 
     override func layoutSubviews() {
@@ -66,6 +72,28 @@ private extension TrimmingHandlerView {
         updateFrames()
         addImage(handle: startThumbView, leading: true)
         addImage(handle: endThumbView, leading: false)
+    }
+    
+    func setupGestures() {
+        startThumbPanGesture.addTarget(self, action: #selector(handleStartThumbPan(_:)))
+        endThumbPanGesture.addTarget(self, action: #selector(handleEndThumbPan(_:)))
+        
+        startThumbView.addGestureRecognizer(startThumbPanGesture)
+        endThumbView.addGestureRecognizer(endThumbPanGesture)
+        
+        // To prioritize trimming gestures, make sure they don't conflict with pager gestures
+        if let pagerGesture = superview?.gestureRecognizers?.first {
+            startThumbPanGesture.require(toFail: pagerGesture)
+            endThumbPanGesture.require(toFail: pagerGesture)
+        }
+    }
+    
+    func updateHighlighting(for state: UIGestureRecognizer.State) {
+        let color: UIColor = (state == .began || state == .changed) ? .yellow : .white
+        startThumbView.backgroundColor = color
+        endThumbView.backgroundColor = color
+        topBoundaryLayer.backgroundColor = color.cgColor
+        bottomBoundaryLayer.backgroundColor = color.cgColor
     }
     
     func addImage(handle: UIView, leading: Bool) {
@@ -120,51 +148,36 @@ private extension TrimmingHandlerView {
 
 // MARK: Gesture handler
 extension TrimmingHandlerView {
-    override func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-        guard let touch = touches.first else { return }
-        let touchLocation = touch.location(in: self)
+    @objc func handleStartThumbPan(_ gesture: UIPanGestureRecognizer) {
+        let translation = gesture.translation(in: self)
         
-        if startThumbView.frame.contains(touchLocation) {
-            isTouchingStartThumb = true
-        } else if endThumbView.frame.contains(touchLocation) {
-            isTouchingEndThumb = true
-        }
-    }
-    
-    override func touchesMoved(_ touches: Set<UITouch>, with event: UIEvent?) {
-        guard let touch = touches.first else { return }
-        let touchLocation = touch.location(in: self)
-        
-        if isTouchingStartThumb {
-            let newValue = valueForPosition(touchLocation.x)
-            // Ensure start is always less than end and greater then 0
+        switch gesture.state {
+        case .began:
+            initialStartThumbX = startThumbView.frame.origin.x
+        case .changed:
+            let newValue = valueForPosition(initialStartThumbX + translation.x)
             startValue = max(0, min(newValue, endValue - minimumTrimLength))
-            
-            startThumbView.backgroundColor = .yellow
-            endThumbView.backgroundColor = .yellow
-            topBoundaryLayer.backgroundColor = UIColor.yellow.cgColor
-            bottomBoundaryLayer.backgroundColor = UIColor.yellow.cgColor
-        } else if isTouchingEndThumb {
-            let newValue = valueForPosition(touchLocation.x)
-            // Ensure end is always greater than start and less then 1
-            endValue = min(1, max(newValue, startValue + minimumTrimLength))
-            
-            startThumbView.backgroundColor = .yellow
-            endThumbView.backgroundColor = .yellow
-            topBoundaryLayer.backgroundColor = UIColor.yellow.cgColor
-            bottomBoundaryLayer.backgroundColor = UIColor.yellow.cgColor
+            updateHighlighting(for: .changed)
+        case .ended, .cancelled:
+            updateHighlighting(for: .ended)
+        default:
+            break
         }
     }
-    
-    override func touchesEnded(_ touches: Set<UITouch>, with event: UIEvent?) {
-        isTouchingStartThumb = false
-        isTouchingEndThumb = false
-        startThumbView.backgroundColor = .white
-        endThumbView.backgroundColor = .white
-        topBoundaryLayer.backgroundColor = UIColor.white.cgColor
-        bottomBoundaryLayer.backgroundColor = UIColor.white.cgColor
 
-        debugPrint("startValue: \(startValue)")
-        debugPrint("endValue: \(endValue)")
+    @objc func handleEndThumbPan(_ gesture: UIPanGestureRecognizer) {
+        let translation = gesture.translation(in: self)
+        switch gesture.state {
+        case .began:
+            initialEndThumbX = endThumbView.frame.origin.x + handleWidth
+        case .changed:
+            let newValue = valueForPosition(initialEndThumbX + translation.x)
+            endValue = min(1, max(newValue, startValue + minimumTrimLength))
+            updateHighlighting(for: .changed)
+        case .ended, .cancelled:
+            updateHighlighting(for: .ended)
+        default:
+            break
+        }
     }
 }
