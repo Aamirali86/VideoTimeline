@@ -11,7 +11,6 @@ import UIKit
 final class TimelineView: UIView {
     private let trimmingHandlerView = TrimmingHandlerView()
     private let previewStackView = UIStackView()
-    // added overlay that will handle all the gestures
     private let overlayView = UIView()
     
     let pageNumberLabel: UILabel = {
@@ -26,22 +25,32 @@ final class TimelineView: UIView {
         return label
     }()
     
-    override init(frame: CGRect) {
-        super.init(frame: frame)
+    private var viewModel: TimelineViewModel
+    
+    init(viewModel: TimelineViewModel) {
+        self.viewModel = viewModel
+        super.init(frame: .zero)
         setupView()
         setupOverlayView()
         setupTrimmingHandlerView()
         setupPageNumberLabel()
         setupGestures()
+        bindViewModel()
     }
 
     required init?(coder: NSCoder) {
-        super.init(coder: coder)
-        setupView()
-        setupOverlayView()
-        setupTrimmingHandlerView()
-        setupPageNumberLabel()
-        setupGestures()
+        fatalError("init(coder:) has not been implemented") // This is not required in your case
+    }
+}
+
+// MARK: Binding
+private extension TimelineView {
+    func bindViewModel() {
+        viewModel.updateScale = { [weak self] in
+            let transform = CGAffineTransform(scaleX: self?.viewModel.currentScale ?? 1.0, y: self?.viewModel.currentScale ?? 1.0)
+            self?.overlayView.transform = transform
+            self?.pageNumberLabel.transform = transform
+        }
     }
 }
 
@@ -142,22 +151,7 @@ private extension TimelineView {
     @objc private func handlePinchGesture(_ sender: UIPinchGestureRecognizer) {
         if sender.state == .changed {
             let currentScale = overlayView.frame.size.width / overlayView.bounds.size.width
-            var newScale = sender.scale * currentScale
-            
-            // Prevent zooming out below the original size
-            if newScale < 1.0 {
-                newScale = 1.0
-            }
-            
-            // Prevent zooming beyond a maximum scale
-            let maxScale: CGFloat = 1.5
-            if newScale > maxScale {
-                newScale = maxScale
-            }
-            
-            let transform = CGAffineTransform(scaleX: newScale, y: newScale)
-            overlayView.transform = transform
-            pageNumberLabel.transform = transform
+            viewModel.handlePinchGesture(scale: sender.scale, currentScale)
             sender.scale = 1.0
         }
     }

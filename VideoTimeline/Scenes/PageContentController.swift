@@ -15,7 +15,7 @@ final class PageContentController: UIViewController {
         }
     }
     
-    private let timelineView = TimelineView()
+    private let timelineView = TimelineView(viewModel: TimelineViewModel())
 
     override func viewDidLoad() {
         super.viewDidLoad()
