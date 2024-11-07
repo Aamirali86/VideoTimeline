@@ -14,11 +14,24 @@ final class TimelineView: UIView {
     // added overlay that will handle all the gestures
     private let overlayView = UIView()
     
+    let pageNumberLabel: UILabel = {
+        let label = UILabel()
+        label.textAlignment = .center
+        label.font = UIFont.boldSystemFont(ofSize: 32)
+        label.textColor = .white
+        label.backgroundColor = UIColor.black.withAlphaComponent(0.7)
+        label.layer.cornerRadius = 8
+        label.layer.masksToBounds = true
+        label.translatesAutoresizingMaskIntoConstraints = false
+        return label
+    }()
+    
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupView()
         setupOverlayView()
         setupTrimmingHandlerView()
+        setupPageNumberLabel()
         setupGestures()
     }
 
@@ -27,6 +40,7 @@ final class TimelineView: UIView {
         setupView()
         setupOverlayView()
         setupTrimmingHandlerView()
+        setupPageNumberLabel()
         setupGestures()
     }
 }
@@ -79,6 +93,17 @@ private extension TimelineView {
             overlayView.bottomAnchor.constraint(equalTo: bottomAnchor)
         ])
     }
+    
+    func setupPageNumberLabel() {
+        addSubview(pageNumberLabel)
+        
+        NSLayoutConstraint.activate([
+            pageNumberLabel.widthAnchor.constraint(equalToConstant: 160),
+            pageNumberLabel.heightAnchor.constraint(equalToConstant: 60),
+            pageNumberLabel.centerXAnchor.constraint(equalTo: centerXAnchor),
+            pageNumberLabel.centerYAnchor.constraint(equalTo: centerYAnchor)
+        ])
+    }
 
     func setupGestures() {
         let pinchGesture = UIPinchGestureRecognizer(target: self, action: #selector(handlePinchGesture(_:)))
@@ -124,8 +149,15 @@ private extension TimelineView {
                 newScale = 1.0
             }
             
+            // Prevent zooming beyond a maximum scale
+            let maxScale: CGFloat = 1.5
+            if newScale > maxScale {
+                newScale = maxScale
+            }
+            
             let transform = CGAffineTransform(scaleX: newScale, y: newScale)
             overlayView.transform = transform
+            pageNumberLabel.transform = transform
             sender.scale = 1.0
         }
     }
