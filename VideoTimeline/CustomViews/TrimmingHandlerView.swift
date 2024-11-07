@@ -9,16 +9,10 @@ import Foundation
 import UIKit
 
 final class TrimmingHandlerView: UIView {
-    var minimumValue: CGFloat = 0
-    var maximumValue: CGFloat = 1
-
-    var startValue: CGFloat = 0 {
-        didSet { updateLayout() }
-    }
-
-    var endValue: CGFloat = 1 {
-        didSet { updateLayout() }
-    }
+    private let minimumValue: CGFloat = 0
+    private let maximumValue: CGFloat = 1
+    
+    private var viewModel: TrimmingHandlerViewModel
 
     // Handler gestures
     private let startThumbPanGesture = UIPanGestureRecognizer()
@@ -43,19 +37,15 @@ final class TrimmingHandlerView: UIView {
     private let handleWidth: CGFloat = 20.0
     private let handleHeight: CGFloat = 68.0
     
-    // Minimum distance between handlers to avoid intersaction
-    private let minimumTrimLength: CGFloat = 0.2
-
-    override init(frame: CGRect) {
-        super.init(frame: frame)
+    init(viewModel: TrimmingHandlerViewModel) {
+        self.viewModel = viewModel
+        super.init(frame: .zero)
         setupLayers()
         setupGestures()
     }
     
     required init?(coder: NSCoder) {
-        super.init(coder: coder)
-        setupLayers()
-        setupGestures()
+        fatalError("init(coder:) has not been implemented")
     }
 
     override func layoutSubviews() {
@@ -135,8 +125,8 @@ private extension TrimmingHandlerView {
     }
     
     func updateFrames() {
-        let startThumb = positionForValue(startValue)
-        let endThumb = positionForValue(endValue)
+        let startThumb = positionForValue(viewModel.startValue)
+        let endThumb = positionForValue(viewModel.endValue)
         let maxWidth = positionForValue(1)
         
         // Disable implicit animations
@@ -159,8 +149,8 @@ private extension TrimmingHandlerView {
     }
     
     func updateLayout() {
-        let start = positionForValue(startValue)
-        let end = positionForValue(endValue)
+        let start = positionForValue(viewModel.startValue)
+        let end = positionForValue(viewModel.endValue)
         frame.origin.x = start
         frame.size.width = end - start
     }
@@ -184,7 +174,8 @@ extension TrimmingHandlerView {
             initialStartThumbX = startThumbView.frame.origin.x
         case .changed:
             let newValue = valueForPosition(initialStartThumbX + translation.x)
-            startValue = max(0, min(newValue, endValue - minimumTrimLength))
+            viewModel.updateStartValue(to: max(0, min(newValue, viewModel.endValue - viewModel.minimumTrimLength)))
+            updateLayout()
             updateHighlighting(for: .changed)
         case .ended, .cancelled:
             updateHighlighting(for: .ended)
@@ -200,7 +191,8 @@ extension TrimmingHandlerView {
             initialEndThumbX = endThumbView.frame.origin.x + handleWidth
         case .changed:
             let newValue = valueForPosition(initialEndThumbX + translation.x)
-            endValue = min(1, max(newValue, startValue + minimumTrimLength))
+            viewModel.updateEndValue(to: min(1, max(newValue, viewModel.startValue + viewModel.minimumTrimLength)))
+            updateLayout()
             updateHighlighting(for: .changed)
         case .ended, .cancelled:
             updateHighlighting(for: .ended)

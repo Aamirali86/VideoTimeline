@@ -9,7 +9,7 @@ import Foundation
 import UIKit
 
 final class TimelineView: UIView {
-    private let trimmingHandlerView = TrimmingHandlerView()
+    private let trimmingHandlerView = TrimmingHandlerView(viewModel: TrimmingHandlerViewModel())
     private let previewStackView = UIStackView()
     private let overlayView = UIView()
     
