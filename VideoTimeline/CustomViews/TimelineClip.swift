@@ -20,8 +20,8 @@ final class TimelineClip: UIView {
     // Minimum distance between handlers to avoid intersaction
     let minimumTrimLength: CGFloat = 0.2
     
-    private let handleWidth: CGFloat = 20.0
-    private let handleHeight: CGFloat = 68.0
+    private let handleWidth: CGFloat = 10.0
+    private let handleHeight: CGFloat = 70.0
     
     // Maintaining the state of trimming handlers
     private var initialStartThumbX: CGFloat = 0
@@ -74,6 +74,7 @@ final class TimelineClip: UIView {
     override func layoutSubviews() {
         super.layoutSubviews()
         updateFrames()
+        addBorderToCollectionView()
     }
 }
 
@@ -104,8 +105,7 @@ private extension TimelineClip {
         collectionView = UICollectionView(frame: .zero, collectionViewLayout: layout)
         collectionView.backgroundColor = .clear
         collectionView.showsHorizontalScrollIndicator = false
-        collectionView.layer.borderWidth = 1.0
-        collectionView.layer.borderColor = UIColor.black.cgColor
+        collectionView.clipsToBounds = false
         collectionView.dataSource = self
         collectionView.delegate = self
         collectionView.register(TimelineClipCollectionViewCell.self, forCellWithReuseIdentifier: TimelineClipCollectionViewCell.identifier)
@@ -124,14 +124,31 @@ private extension TimelineClip {
         setupHandles()
     }
     
+    func addBorderToCollectionView() {
+        collectionView.layer.sublayers?
+            .filter { $0.name == "contentBorderLayer" }
+            .forEach { $0.removeFromSuperlayer() }
+        
+        let borderLayer = CALayer()
+        borderLayer.name = "contentBorderLayer"
+        borderLayer.borderColor = UIColor.black.cgColor
+        borderLayer.borderWidth = 2
+        borderLayer.frame = CGRect(x: 0, y: 0, width: collectionView.contentSize.width, height: collectionView.bounds.height)
+        collectionView.layer.addSublayer(borderLayer)
+        
+        collectionView.bringSubviewToFront(leftHandle)
+        collectionView.bringSubviewToFront(rightHandle)
+    }
+    
     func setupHandles() {
         collectionView.layoutIfNeeded()
+        
         leftHandle.backgroundColor = .white
-        leftHandle.frame = CGRect(x: 0, y: 0, width: 20, height: 60)
+        leftHandle.layer.cornerRadius = 4
         collectionView.addSubview(leftHandle)
         
         rightHandle.backgroundColor = .white
-        rightHandle.frame = CGRect(x: collectionView.contentSize.width - 20, y: 0, width: 20, height: 60)
+        rightHandle.layer.cornerRadius = 4
         collectionView.addSubview(rightHandle)
 
         leftHandle.isUserInteractionEnabled = true
@@ -203,15 +220,8 @@ private extension TimelineClip {
     func updateFrames() {
         let startThumb = positionForValue(startValue)
         let endThumb = positionForValue(endValue)
-        
-        // Disable implicit animations
-        CATransaction.begin()
-        CATransaction.setDisableActions(true)
-        
-        leftHandle.frame = CGRect(x: startThumb, y: -4, width: handleWidth, height: handleHeight)
-        rightHandle.frame = CGRect(x: endThumb - handleWidth, y: -4, width: handleWidth, height: handleHeight)
-        
-        CATransaction.commit()
+        leftHandle.frame = CGRect(x: startThumb + 3, y: -5, width: handleWidth, height: handleHeight)
+        rightHandle.frame = CGRect(x: endThumb - handleWidth - 3, y: -5, width: handleWidth, height: handleHeight)
     }
     
     func updateLayout() {
