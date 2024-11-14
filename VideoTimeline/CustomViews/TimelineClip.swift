@@ -23,6 +23,8 @@ final class TimelineClip: UIView {
     private let handleWidth: CGFloat = 10.0
     private let handleHeight: CGFloat = 70.0
     private var numberOfItems = 15
+    private var lastItemChangeTime: TimeInterval = 0
+    private var accumulatedScaleChange: Double = 0.0
     
     let colorPattern: [UIColor] = [
         .red, .blue, .green, .yellow, .purple, .brown, .cyan, .magenta, .orange, .darkGray
@@ -90,6 +92,7 @@ final class TimelineClip: UIView {
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
         if keyPath == "contentSize" {
             addBorderToCollectionView()
+            updateFrames()
         }
     }
 }
@@ -216,6 +219,7 @@ private extension TimelineClip {
     func setupGestures() {
         let pinchGesture = UIPinchGestureRecognizer(target: self, action: #selector(handlePinchGesture(_:)))
         overlayView.addGestureRecognizer(pinchGesture)
+        collectionView.addGestureRecognizer(pinchGesture)
 
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTapGesture(_:)))
         overlayView.addGestureRecognizer(tapGesture)
@@ -224,9 +228,6 @@ private extension TimelineClip {
         let endThumbPanGesture = UIPanGestureRecognizer(target: self, action: #selector(handleEndThumbPan(_:)))
         leftHandle.addGestureRecognizer(startThumbPanGesture)
         rightHandle.addGestureRecognizer(endThumbPanGesture)
-        
-//        let collectionPinchGesture = UIPinchGestureRecognizer(target: self, action: #selector(handleCollectionViewPinchGesture(_:)))
-//        collectionView.addGestureRecognizer(collectionPinchGesture)
         
         // To prioritize trimming gestures, make sure they don't conflict with pager gestures
         if let pagerGesture = superview?.gestureRecognizers?.first {
@@ -300,16 +301,44 @@ private extension TimelineClip {
         switch sender.state {
         case .began:
             initialScale = sender.scale
+            accumulatedScaleChange = 0.0
+
         case .changed:
-            let currentScale = overlayView.frame.size.width / overlayView.bounds.size.width
-            viewModel.handlePinchGesture(scale: sender.scale, currentScale)
             let scaleDelta = sender.scale - initialScale
-            let targetOffset = collectionView.contentOffset.x + scaleDelta * 10
+            accumulatedScaleChange += scaleDelta
+            initialScale = sender.scale
+
+            // Adjust the target offset based on accumulated scale change
+            let targetOffset = collectionView.contentOffset.x + accumulatedScaleChange * 5
             let maxOffset = collectionView.contentSize.width - collectionView.frame.width / 2
-            collectionView.setContentOffset(CGPoint(x: max(min(targetOffset, maxOffset), -collectionView.frame.width / 2), y: 0), animated: false)
+
+            UIView.animate(withDuration: 0.1) {
+                self.collectionView.contentOffset.x = max(min(targetOffset, maxOffset), -self.collectionView.frame.width / 2)
+            }
+
+            // Only add or remove items when accumulated change surpasses threshold and debounce with time delay
+            let scaleThreshold: CGFloat = 0.3
+            let debounceDelay: TimeInterval = 0.2
+
+            let currentTime = Date().timeIntervalSince1970
+            if abs(accumulatedScaleChange) > scaleThreshold, currentTime - lastItemChangeTime > debounceDelay {
+                let shouldAddItem = accumulatedScaleChange > 0
+                let currentItemCount = collectionView.numberOfItems(inSection: 0)
+
+                collectionView.performBatchUpdates({
+                    if shouldAddItem && currentItemCount < 40 {
+                        collectionView.insertItems(at: [IndexPath(item: currentItemCount, section: 0)])
+                        numberOfItems = currentItemCount + 1
+                    } else if !shouldAddItem && currentItemCount > 5 {
+                        collectionView.deleteItems(at: [IndexPath(item: currentItemCount - 1, section: 0)])
+                        numberOfItems = currentItemCount - 1
+                    }
+                }, completion: nil)
+
+                accumulatedScaleChange = 0.0
+                lastItemChangeTime = currentTime
+            }
         case .ended:
-            let newItemCount = Int(max(15, min(40, CGFloat(collectionView.numberOfItems(inSection: 0)) * sender.scale)))
-            numberOfItems = newItemCount
             collectionView.reloadData()
         default:
             break
