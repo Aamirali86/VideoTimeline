@@ -22,7 +22,7 @@ final class TimelineClip: UIView {
     
     private let handleWidth: CGFloat = 10.0
     private let handleHeight: CGFloat = 70.0
-    private var numberOfItems = 15
+    private var numberOfItems = 5
     private var lastItemChangeTime: TimeInterval = 0
     private var accumulatedScaleChange: Double = 0.0
     
@@ -132,7 +132,8 @@ private extension TimelineClip {
         
         let centerOffset = UIScreen.main.bounds.width / 2 - layout.itemSize.width / 2 - 12
         collectionView.contentInset = UIEdgeInsets(top: 0, left: centerOffset, bottom: 0, right: centerOffset)
-        
+        collectionView.contentOffset = CGPoint(x: -((numberOfItems * 30)/2 + 30), y: 0)
+
         addSubview(collectionView)
         bringSubviewToFront(collectionView)
 
@@ -308,14 +309,6 @@ private extension TimelineClip {
             accumulatedScaleChange += scaleDelta
             initialScale = sender.scale
 
-            // Adjust the target offset based on accumulated scale change
-            let targetOffset = collectionView.contentOffset.x + accumulatedScaleChange * 5
-            let maxOffset = collectionView.contentSize.width - collectionView.frame.width / 2
-
-            UIView.animate(withDuration: 0.1) {
-                self.collectionView.contentOffset.x = max(min(targetOffset, maxOffset), -self.collectionView.frame.width / 2)
-            }
-
             // Only add or remove items when accumulated change surpasses threshold and debounce with time delay
             let scaleThreshold: CGFloat = 0.3
             let debounceDelay: TimeInterval = 0.2
@@ -329,9 +322,15 @@ private extension TimelineClip {
                     if shouldAddItem && currentItemCount < 40 {
                         collectionView.insertItems(at: [IndexPath(item: currentItemCount, section: 0)])
                         numberOfItems = currentItemCount + 1
+                        UIView.animate(withDuration: 0.1) {
+                            self.collectionView.contentOffset.x += 30 / 2
+                        }
                     } else if !shouldAddItem && currentItemCount > 5 {
                         collectionView.deleteItems(at: [IndexPath(item: currentItemCount - 1, section: 0)])
                         numberOfItems = currentItemCount - 1
+                        UIView.animate(withDuration: 0.1) {
+                            self.collectionView.contentOffset.x -= 30 / 2
+                        }
                     }
                 }, completion: nil)
 
