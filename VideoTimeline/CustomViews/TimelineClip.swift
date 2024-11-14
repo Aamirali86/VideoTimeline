@@ -50,18 +50,6 @@ final class TimelineClip: UIView {
         }
     }
 
-    let pageNumberLabel: UILabel = {
-        let label = UILabel()
-        label.textAlignment = .center
-        label.font = UIFont.boldSystemFont(ofSize: 32)
-        label.textColor = .white
-        label.backgroundColor = UIColor.black.withAlphaComponent(0.7)
-        label.layer.cornerRadius = 8
-        label.layer.masksToBounds = true
-        label.translatesAutoresizingMaskIntoConstraints = false
-        return label
-    }()
-    
     private let centerIndicatorLine: UIView = {
         let line = UIView()
         line.backgroundColor = .white
@@ -77,7 +65,6 @@ final class TimelineClip: UIView {
         super.init(frame: .zero)
         setupOverlayView()
         setupView()
-        setupPageNumberLabel()
         setupGestures()
         bindViewModel()
     }
@@ -106,7 +93,6 @@ private extension TimelineClip {
         viewModel.updateScale = { [weak self] in
             let transform = CGAffineTransform(scaleX: self?.viewModel.currentScale ?? 1.0, y: self?.viewModel.currentScale ?? 1.0)
             self?.overlayView.transform = transform
-            self?.pageNumberLabel.transform = transform
         }
     }
 }
@@ -119,7 +105,7 @@ private extension TimelineClip {
         // Set up the collection view layout
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .horizontal
-        layout.itemSize = CGSize(width: 30, height: 80)
+        layout.itemSize = CGSize(width: 40, height: 80)
         layout.minimumInteritemSpacing = 0
         layout.minimumLineSpacing = 0
 
@@ -135,7 +121,7 @@ private extension TimelineClip {
         
         let centerOffset = UIScreen.main.bounds.width / 2 - layout.itemSize.width / 2 - 12
         collectionView.contentInset = UIEdgeInsets(top: 0, left: centerOffset, bottom: 0, right: centerOffset)
-        collectionView.contentOffset = CGPoint(x: -((numberOfItems * 30)/2 + 30), y: 0)
+        collectionView.contentOffset = CGPoint(x: -(numberOfItems * 30)/2, y: 0)
 
         addSubview(collectionView)
         bringSubviewToFront(collectionView)
@@ -166,6 +152,8 @@ private extension TimelineClip {
         
         collectionView.bringSubviewToFront(leftHandle)
         collectionView.bringSubviewToFront(rightHandle)
+        topBoundaryLayer.zPosition = 1
+        bottomBoundaryLayer.zPosition = 1
     }
     
     func setupHandles() {
@@ -210,17 +198,6 @@ private extension TimelineClip {
             
             centerIndicatorLine.widthAnchor.constraint(equalToConstant: 4),
             centerIndicatorLine.heightAnchor.constraint(equalTo: collectionView.heightAnchor, multiplier: 1.5)
-        ])
-    }
-
-    func setupPageNumberLabel() {
-        addSubview(pageNumberLabel)
-        
-        NSLayoutConstraint.activate([
-            pageNumberLabel.widthAnchor.constraint(equalToConstant: 160),
-            pageNumberLabel.heightAnchor.constraint(equalToConstant: 80),
-            pageNumberLabel.centerXAnchor.constraint(equalTo: centerXAnchor),
-            pageNumberLabel.centerYAnchor.constraint(equalTo: centerYAnchor)
         ])
     }
 
@@ -272,8 +249,8 @@ private extension TimelineClip {
         rightHandle.frame = CGRect(x: endThumb - handleWidth, y: 0, width: handleWidth, height: handleHeight)
         
         let boundaryWidth = endThumb - startThumb
-        topBoundaryLayer.frame = CGRect(x: startThumb, y: -3, width: boundaryWidth, height: 6)
-        bottomBoundaryLayer.frame = CGRect(x: startThumb, y: 80 - 3, width: boundaryWidth, height: 6)
+        topBoundaryLayer.frame = CGRect(x: startThumb, y: -2, width: boundaryWidth, height: 4)
+        bottomBoundaryLayer.frame = CGRect(x: startThumb, y: 80 - 2, width: boundaryWidth, height: 4)
         
         CATransaction.commit()
     }
@@ -299,6 +276,36 @@ private extension TimelineClip {
         rightHandle.backgroundColor = color
         topBoundaryLayer.backgroundColor = color.cgColor
         bottomBoundaryLayer.backgroundColor = color.cgColor
+    }
+    
+    func updateCollectionViewForPositionChange(_ positionChange: CGFloat) {
+        let currentItemCount = collectionView.numberOfItems(inSection: 0)
+        
+        let itemsDelta = positionChange / 40
+        let roundedDelta = round(itemsDelta)
+        
+        // Check if position change surpasses threshold to add or remove items
+        if abs(roundedDelta) >= 1 {
+            
+            UIView.animate(withDuration: 0.2) { [unowned self] in
+                self.collectionView.performBatchUpdates({
+                    if roundedDelta < 0 {
+                        let newItemCount = currentItemCount + Int(roundedDelta)
+                        guard newItemCount > 1 else { return }
+                        let indexPathsToRemove = (newItemCount..<currentItemCount).map { IndexPath(item: $0, section: 0) }
+                        collectionView.deleteItems(at: indexPathsToRemove)
+                        numberOfItems = newItemCount
+                    } else {
+                        let newItemCount = currentItemCount - Int(roundedDelta)
+                        guard newItemCount > 1 else { return }
+                        let indexPathsToRemove = (0..<currentItemCount-newItemCount).map { IndexPath(item: $0, section: 0) }
+                        collectionView.deleteItems(at: indexPathsToRemove)
+                        numberOfItems = newItemCount
+                    }
+                }, completion: nil)
+            }
+            collectionView.reloadData()
+        }
     }
 }
 
@@ -344,13 +351,13 @@ private extension TimelineClip {
                             collectionView.insertItems(at: [IndexPath(item: currentItemCount, section: 0)])
                             numberOfItems = currentItemCount + 1
                             UIView.animate(withDuration: 0.1) {
-                                self.collectionView.contentOffset.x += 30 / 2
+                                self.collectionView.contentOffset.x += 40 / 2
                             }
                         } else if !shouldAddItem && currentItemCount > 5 {
                             collectionView.deleteItems(at: [IndexPath(item: currentItemCount - 1, section: 0)])
                             numberOfItems = currentItemCount - 1
                             UIView.animate(withDuration: 0.1) {
-                                self.collectionView.contentOffset.x -= 30 / 2
+                                self.collectionView.contentOffset.x -= 40 / 2
                             }
                         }
                     }, completion: nil)
@@ -375,7 +382,6 @@ private extension TimelineClip {
 extension TimelineClip {
     @objc func handleStartThumbPan(_ gesture: UIPanGestureRecognizer) {
         let translation = gesture.translation(in: self)
-        
         switch gesture.state {
         case .began:
             initialStartThumbX = leftHandle.frame.origin.x
@@ -385,7 +391,11 @@ extension TimelineClip {
             updateLayout()
             updateHighlighting(for: .changed)
         case .ended, .cancelled:
+            let finalPosition = leftHandle.frame.origin.x
+            let positionChange = finalPosition - initialStartThumbX
+            updateCollectionViewForPositionChange(positionChange)
             updateHighlighting(for: .ended)
+            updateStartValue(to: 0)
         default:
             break
         }
@@ -402,7 +412,11 @@ extension TimelineClip {
             updateLayout()
             updateHighlighting(for: .changed)
         case .ended, .cancelled:
+            let finalPosition = rightHandle.frame.origin.x
+            let positionChange = finalPosition - initialEndThumbX
+            updateCollectionViewForPositionChange(positionChange)
             updateHighlighting(for: .ended)
+            updateEndValue(to: 1)
         default:
             break
         }

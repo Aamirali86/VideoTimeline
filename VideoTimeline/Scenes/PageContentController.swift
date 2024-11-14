@@ -9,12 +9,6 @@ import Foundation
 import UIKit
 
 final class PageContentController: UIViewController {
-    var pageIndex: Int = 0 {
-        didSet {
-            timelineView.pageNumberLabel.text = "Track \(pageIndex + 1)"
-        }
-    }
-    
     private let timelineView = TimelineClip(viewModel: TimelineViewModel())
 
     override func viewDidLoad() {
