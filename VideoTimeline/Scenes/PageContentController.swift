@@ -9,7 +9,7 @@ import Foundation
 import UIKit
 
 final class PageContentController: UIViewController {
-    private let timelineView = TimelineClip(viewModel: TimelineViewModel())
+    private let timelineView = TimelineClipView()
 
     override func viewDidLoad() {
         super.viewDidLoad()
