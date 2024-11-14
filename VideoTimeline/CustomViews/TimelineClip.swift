@@ -16,12 +16,15 @@ final class TimelineClip: UIView {
     private var collectionView: UICollectionView!
     private let leftHandle = UIView()
     private let rightHandle = UIView()
+    private let topBoundaryLayer = CALayer()
+    private let bottomBoundaryLayer = CALayer()
+
     
     // Minimum distance between handlers to avoid intersaction
     let minimumTrimLength: CGFloat = 0.2
     
-    private let handleWidth: CGFloat = 10.0
-    private let handleHeight: CGFloat = 70.0
+    private let handleWidth: CGFloat = 15.0
+    private let handleHeight: CGFloat = 80.0
     private var numberOfItems = 5
     private var lastItemChangeTime: TimeInterval = 0
     private var accumulatedScaleChange: Double = 0.0
@@ -116,7 +119,7 @@ private extension TimelineClip {
         // Set up the collection view layout
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .horizontal
-        layout.itemSize = CGSize(width: 30, height: 60)
+        layout.itemSize = CGSize(width: 30, height: 80)
         layout.minimumInteritemSpacing = 0
         layout.minimumLineSpacing = 0
 
@@ -142,7 +145,7 @@ private extension TimelineClip {
             collectionView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 10),
             collectionView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -10),
             collectionView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -20),
-            collectionView.heightAnchor.constraint(equalToConstant: 60)
+            collectionView.heightAnchor.constraint(equalToConstant: 80)
         ])
         
         setupHandles()
@@ -169,13 +172,17 @@ private extension TimelineClip {
         collectionView.layoutIfNeeded()
         
         leftHandle.backgroundColor = .white
-        leftHandle.layer.cornerRadius = 4
         collectionView.addSubview(leftHandle)
         
         rightHandle.backgroundColor = .white
-        rightHandle.layer.cornerRadius = 4
         collectionView.addSubview(rightHandle)
 
+        topBoundaryLayer.backgroundColor = UIColor.white.cgColor
+        collectionView.layer.addSublayer(topBoundaryLayer)
+        
+        bottomBoundaryLayer.backgroundColor = UIColor.white.cgColor
+        collectionView.layer.addSublayer(bottomBoundaryLayer)
+        
         leftHandle.isUserInteractionEnabled = true
         rightHandle.isUserInteractionEnabled = true
     }
@@ -211,7 +218,7 @@ private extension TimelineClip {
         
         NSLayoutConstraint.activate([
             pageNumberLabel.widthAnchor.constraint(equalToConstant: 160),
-            pageNumberLabel.heightAnchor.constraint(equalToConstant: 60),
+            pageNumberLabel.heightAnchor.constraint(equalToConstant: 80),
             pageNumberLabel.centerXAnchor.constraint(equalTo: centerXAnchor),
             pageNumberLabel.centerYAnchor.constraint(equalTo: centerYAnchor)
         ])
@@ -257,8 +264,18 @@ private extension TimelineClip {
     func updateFrames() {
         let startThumb = positionForValue(startValue)
         let endThumb = positionForValue(endValue)
-        leftHandle.frame = CGRect(x: startThumb + 3, y: -5, width: handleWidth, height: handleHeight)
-        rightHandle.frame = CGRect(x: endThumb - handleWidth - 3, y: -5, width: handleWidth, height: handleHeight)
+        
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+
+        leftHandle.frame = CGRect(x: startThumb, y: 0, width: handleWidth, height: handleHeight)
+        rightHandle.frame = CGRect(x: endThumb - handleWidth, y: 0, width: handleWidth, height: handleHeight)
+        
+        let boundaryWidth = endThumb - startThumb
+        topBoundaryLayer.frame = CGRect(x: startThumb, y: -3, width: boundaryWidth, height: 6)
+        bottomBoundaryLayer.frame = CGRect(x: startThumb, y: 80 - 3, width: boundaryWidth, height: 6)
+        
+        CATransaction.commit()
     }
     
     func updateLayout() {
@@ -280,6 +297,8 @@ private extension TimelineClip {
         let color: UIColor = (state == .began || state == .changed) ? .yellow : .white
         leftHandle.backgroundColor = color
         rightHandle.backgroundColor = color
+        topBoundaryLayer.backgroundColor = color.cgColor
+        bottomBoundaryLayer.backgroundColor = color.cgColor
     }
 }
 
@@ -292,6 +311,7 @@ extension TimelineClip: UICollectionViewDataSource, UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: TimelineClipCollectionViewCell.identifier, for: indexPath) as! TimelineClipCollectionViewCell
         cell.backgroundColor = colorPattern[indexPath.item % colorPattern.count]
+        cell.configure(with: indexPath.item + 1)
         return cell
     }
 }
@@ -310,7 +330,7 @@ private extension TimelineClip {
             initialScale = sender.scale
 
             // Only add or remove items when accumulated change surpasses threshold and debounce with time delay
-            let scaleThreshold: CGFloat = 0.3
+            let scaleThreshold: CGFloat = 0.2
             let debounceDelay: TimeInterval = 0.2
 
             let currentTime = Date().timeIntervalSince1970
@@ -318,21 +338,23 @@ private extension TimelineClip {
                 let shouldAddItem = accumulatedScaleChange > 0
                 let currentItemCount = collectionView.numberOfItems(inSection: 0)
 
-                collectionView.performBatchUpdates({
-                    if shouldAddItem && currentItemCount < 40 {
-                        collectionView.insertItems(at: [IndexPath(item: currentItemCount, section: 0)])
-                        numberOfItems = currentItemCount + 1
-                        UIView.animate(withDuration: 0.1) {
-                            self.collectionView.contentOffset.x += 30 / 2
+                UIView.animate(withDuration: 0.2) { [unowned self] in
+                    collectionView.performBatchUpdates({
+                        if shouldAddItem && currentItemCount < 40 {
+                            collectionView.insertItems(at: [IndexPath(item: currentItemCount, section: 0)])
+                            numberOfItems = currentItemCount + 1
+                            UIView.animate(withDuration: 0.1) {
+                                self.collectionView.contentOffset.x += 30 / 2
+                            }
+                        } else if !shouldAddItem && currentItemCount > 5 {
+                            collectionView.deleteItems(at: [IndexPath(item: currentItemCount - 1, section: 0)])
+                            numberOfItems = currentItemCount - 1
+                            UIView.animate(withDuration: 0.1) {
+                                self.collectionView.contentOffset.x -= 30 / 2
+                            }
                         }
-                    } else if !shouldAddItem && currentItemCount > 5 {
-                        collectionView.deleteItems(at: [IndexPath(item: currentItemCount - 1, section: 0)])
-                        numberOfItems = currentItemCount - 1
-                        UIView.animate(withDuration: 0.1) {
-                            self.collectionView.contentOffset.x -= 30 / 2
-                        }
-                    }
-                }, completion: nil)
+                    }, completion: nil)
+                }
 
                 accumulatedScaleChange = 0.0
                 lastItemChangeTime = currentTime
