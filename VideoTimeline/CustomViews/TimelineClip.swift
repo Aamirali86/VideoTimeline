@@ -22,15 +22,17 @@ final class TimelineClip: UIView {
     
     private let handleWidth: CGFloat = 10.0
     private let handleHeight: CGFloat = 70.0
+    private var numberOfItems = 15
     
+    let colorPattern: [UIColor] = [
+        .red, .blue, .green, .yellow, .purple, .brown, .cyan, .magenta, .orange, .darkGray
+    ]
+
     // Maintaining the state of trimming handlers
     private var initialStartThumbX: CGFloat = 0
     private var initialEndThumbX: CGFloat = 0
+    private var initialScale: CGFloat = 1.0
     
-    // Handler gestures
-    private let startThumbPanGesture = UIPanGestureRecognizer()
-    private let endThumbPanGesture = UIPanGestureRecognizer()
-
     private(set) var startValue: CGFloat = 0 {
         didSet {
             startValue = max(0, min(startValue, endValue - minimumTrimLength))
@@ -55,6 +57,14 @@ final class TimelineClip: UIView {
         return label
     }()
     
+    private let centerIndicatorLine: UIView = {
+        let line = UIView()
+        line.backgroundColor = .white
+        line.layer.cornerRadius = 4
+        line.translatesAutoresizingMaskIntoConstraints = false
+        return line
+    }()
+
     private var viewModel: TimelineViewModel
     
     init(viewModel: TimelineViewModel) {
@@ -75,6 +85,12 @@ final class TimelineClip: UIView {
         super.layoutSubviews()
         updateFrames()
         addBorderToCollectionView()
+    }
+
+    override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
+        if keyPath == "contentSize" {
+            addBorderToCollectionView()
+        }
     }
 }
 
@@ -109,6 +125,10 @@ private extension TimelineClip {
         collectionView.dataSource = self
         collectionView.delegate = self
         collectionView.register(TimelineClipCollectionViewCell.self, forCellWithReuseIdentifier: TimelineClipCollectionViewCell.identifier)
+        collectionView.addObserver(self, forKeyPath: "contentSize", options: [.new], context: nil)
+        
+        let centerOffset = UIScreen.main.bounds.width / 2 - layout.itemSize.width / 2 - 12
+        collectionView.contentInset = UIEdgeInsets(top: 0, left: centerOffset, bottom: 0, right: centerOffset)
         
         addSubview(collectionView)
         bringSubviewToFront(collectionView)
@@ -122,6 +142,7 @@ private extension TimelineClip {
         ])
         
         setupHandles()
+        setupCenterIndicatorLine()
     }
     
     func addBorderToCollectionView() {
@@ -169,6 +190,18 @@ private extension TimelineClip {
         ])
     }
     
+    func setupCenterIndicatorLine() {
+        addSubview(centerIndicatorLine)
+        
+        NSLayoutConstraint.activate([
+            centerIndicatorLine.centerXAnchor.constraint(equalTo: collectionView.centerXAnchor),
+            centerIndicatorLine.centerYAnchor.constraint(equalTo: collectionView.centerYAnchor),
+            
+            centerIndicatorLine.widthAnchor.constraint(equalToConstant: 4),
+            centerIndicatorLine.heightAnchor.constraint(equalTo: collectionView.heightAnchor, multiplier: 1.5)
+        ])
+    }
+
     func setupPageNumberLabel() {
         addSubview(pageNumberLabel)
         
@@ -187,11 +220,13 @@ private extension TimelineClip {
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTapGesture(_:)))
         overlayView.addGestureRecognizer(tapGesture)
         
-        startThumbPanGesture.addTarget(self, action: #selector(handleStartThumbPan(_:)))
-        endThumbPanGesture.addTarget(self, action: #selector(handleEndThumbPan(_:)))
-        
+        let startThumbPanGesture = UIPanGestureRecognizer(target: self, action: #selector(handleStartThumbPan(_:)))
+        let endThumbPanGesture = UIPanGestureRecognizer(target: self, action: #selector(handleEndThumbPan(_:)))
         leftHandle.addGestureRecognizer(startThumbPanGesture)
         rightHandle.addGestureRecognizer(endThumbPanGesture)
+        
+//        let collectionPinchGesture = UIPinchGestureRecognizer(target: self, action: #selector(handleCollectionViewPinchGesture(_:)))
+//        collectionView.addGestureRecognizer(collectionPinchGesture)
         
         // To prioritize trimming gestures, make sure they don't conflict with pager gestures
         if let pagerGesture = superview?.gestureRecognizers?.first {
@@ -249,12 +284,12 @@ private extension TimelineClip {
 // MARK: - UICollectionView DataSource and Delegate
 extension TimelineClip: UICollectionViewDataSource, UICollectionViewDelegate {
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return 15
+        numberOfItems
     }
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: TimelineClipCollectionViewCell.identifier, for: indexPath) as! TimelineClipCollectionViewCell
-        cell.backgroundColor = randomColor()
+        cell.backgroundColor = colorPattern[indexPath.item % colorPattern.count]
         return cell
     }
 }
@@ -262,10 +297,22 @@ extension TimelineClip: UICollectionViewDataSource, UICollectionViewDelegate {
 // MARK: Gesture Handlers
 private extension TimelineClip {
     @objc private func handlePinchGesture(_ sender: UIPinchGestureRecognizer) {
-        if sender.state == .changed {
+        switch sender.state {
+        case .began:
+            initialScale = sender.scale
+        case .changed:
             let currentScale = overlayView.frame.size.width / overlayView.bounds.size.width
             viewModel.handlePinchGesture(scale: sender.scale, currentScale)
-            sender.scale = 1.0
+            let scaleDelta = sender.scale - initialScale
+            let targetOffset = collectionView.contentOffset.x + scaleDelta * 10
+            let maxOffset = collectionView.contentSize.width - collectionView.frame.width / 2
+            collectionView.setContentOffset(CGPoint(x: max(min(targetOffset, maxOffset), -collectionView.frame.width / 2), y: 0), animated: false)
+        case .ended:
+            let newItemCount = Int(max(15, min(40, CGFloat(collectionView.numberOfItems(inSection: 0)) * sender.scale)))
+            numberOfItems = newItemCount
+            collectionView.reloadData()
+        default:
+            break
         }
     }
 
@@ -308,6 +355,16 @@ extension TimelineClip {
             updateHighlighting(for: .ended)
         default:
             break
+        }
+    }
+}
+
+extension TimelineClip: UIScrollViewDelegate {
+    func scrollViewDidScroll(_ scrollView: UIScrollView) {
+        let centerPoint = CGPoint(x: collectionView.bounds.midX, y: 0)
+        if let indexPath = collectionView.indexPathForItem(at: centerPoint),
+           let centerCell = collectionView.cellForItem(at: indexPath) {
+            overlayView.backgroundColor = centerCell.backgroundColor
         }
     }
 }
