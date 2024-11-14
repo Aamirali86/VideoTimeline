@@ -291,13 +291,13 @@ private extension TimelineClip {
                 self.collectionView.performBatchUpdates({
                     if roundedDelta < 0 {
                         let newItemCount = currentItemCount + Int(roundedDelta)
-                        guard newItemCount > 1 else { return }
+                        guard newItemCount > 2 else { return }
                         let indexPathsToRemove = (newItemCount..<currentItemCount).map { IndexPath(item: $0, section: 0) }
                         collectionView.deleteItems(at: indexPathsToRemove)
                         numberOfItems = newItemCount
                     } else {
                         let newItemCount = currentItemCount - Int(roundedDelta)
-                        guard newItemCount > 1 else { return }
+                        guard newItemCount > 2 else { return }
                         let indexPathsToRemove = (0..<currentItemCount-newItemCount).map { IndexPath(item: $0, section: 0) }
                         collectionView.deleteItems(at: indexPathsToRemove)
                         numberOfItems = newItemCount
@@ -305,6 +305,18 @@ private extension TimelineClip {
                 }, completion: nil)
             }
             collectionView.reloadData()
+        }
+    }
+    
+    func centerContentOffset() {
+        let collectionViewWidth = collectionView.bounds.width
+        let contentWidth = CGFloat(numberOfItems) * 40
+        let targetOffsetX = (collectionViewWidth - contentWidth ) / 2
+
+        if contentWidth < collectionViewWidth {
+            UIView.animate(withDuration: 0.2) {
+                self.collectionView.contentOffset.x = -targetOffsetX
+            }
         }
     }
 }
@@ -396,6 +408,7 @@ extension TimelineClip {
             updateCollectionViewForPositionChange(positionChange)
             updateHighlighting(for: .ended)
             updateStartValue(to: 0)
+            centerContentOffset()
         default:
             break
         }
@@ -417,6 +430,7 @@ extension TimelineClip {
             updateCollectionViewForPositionChange(positionChange)
             updateHighlighting(for: .ended)
             updateEndValue(to: 1)
+            centerContentOffset()
         default:
             break
         }
