@@ -19,16 +19,18 @@ final class TimelineClip: UIView {
     private let topBoundaryLayer = CALayer()
     private let bottomBoundaryLayer = CALayer()
 
-    
     // Minimum distance between handlers to avoid intersaction
     let minimumTrimLength: CGFloat = 0.2
     
     private let handleWidth: CGFloat = 15.0
     private let handleHeight: CGFloat = 80.0
+    private let itemWidth: CGFloat = 40
+    private let itemHeight: CGFloat = 80
     private var numberOfItems = 5
     private var lastItemChangeTime: TimeInterval = 0
     private var accumulatedScaleChange: Double = 0.0
     
+    // Color based on index
     let colorPattern: [UIColor] = [
         .red, .blue, .green, .yellow, .purple, .brown, .cyan, .magenta, .orange, .darkGray
     ]
@@ -50,6 +52,7 @@ final class TimelineClip: UIView {
         }
     }
 
+    // Indicating center of clip view
     private let centerIndicatorLine: UIView = {
         let line = UIView()
         line.backgroundColor = .white
@@ -79,6 +82,7 @@ final class TimelineClip: UIView {
         addBorderToCollectionView()
     }
 
+    // Update frame and border when content size changes
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
         if keyPath == "contentSize" {
             addBorderToCollectionView()
@@ -105,7 +109,7 @@ private extension TimelineClip {
         // Set up the collection view layout
         let layout = UICollectionViewFlowLayout()
         layout.scrollDirection = .horizontal
-        layout.itemSize = CGSize(width: 40, height: 80)
+        layout.itemSize = CGSize(width: itemWidth, height: itemHeight)
         layout.minimumInteritemSpacing = 0
         layout.minimumLineSpacing = 0
 
@@ -119,6 +123,7 @@ private extension TimelineClip {
         collectionView.register(TimelineClipCollectionViewCell.self, forCellWithReuseIdentifier: TimelineClipCollectionViewCell.identifier)
         collectionView.addObserver(self, forKeyPath: "contentSize", options: [.new], context: nil)
         
+        // Center align clip view initially
         let centerOffset = UIScreen.main.bounds.width / 2 - layout.itemSize.width / 2 - 12
         collectionView.contentInset = UIEdgeInsets(top: 0, left: centerOffset, bottom: 0, right: centerOffset)
         collectionView.contentOffset = CGPoint(x: -(numberOfItems * 30)/2, y: 0)
@@ -131,7 +136,7 @@ private extension TimelineClip {
             collectionView.leadingAnchor.constraint(equalTo: leadingAnchor, constant: 10),
             collectionView.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -10),
             collectionView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -20),
-            collectionView.heightAnchor.constraint(equalToConstant: 80)
+            collectionView.heightAnchor.constraint(equalToConstant: itemHeight)
         ])
         
         setupHandles()
@@ -203,7 +208,6 @@ private extension TimelineClip {
 
     func setupGestures() {
         let pinchGesture = UIPinchGestureRecognizer(target: self, action: #selector(handlePinchGesture(_:)))
-        overlayView.addGestureRecognizer(pinchGesture)
         collectionView.addGestureRecognizer(pinchGesture)
 
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTapGesture(_:)))
@@ -245,12 +249,13 @@ private extension TimelineClip {
         CATransaction.begin()
         CATransaction.setDisableActions(true)
 
+        // Updating trim frame once dragged
         leftHandle.frame = CGRect(x: startThumb, y: 0, width: handleWidth, height: handleHeight)
         rightHandle.frame = CGRect(x: endThumb - handleWidth, y: 0, width: handleWidth, height: handleHeight)
         
         let boundaryWidth = endThumb - startThumb
         topBoundaryLayer.frame = CGRect(x: startThumb, y: -2, width: boundaryWidth, height: 4)
-        bottomBoundaryLayer.frame = CGRect(x: startThumb, y: 80 - 2, width: boundaryWidth, height: 4)
+        bottomBoundaryLayer.frame = CGRect(x: startThumb, y: handleHeight - 2, width: boundaryWidth, height: 4)
         
         CATransaction.commit()
     }
@@ -278,10 +283,11 @@ private extension TimelineClip {
         bottomBoundaryLayer.backgroundColor = color.cgColor
     }
     
+    // Remove items from collection on trimming
     func updateCollectionViewForPositionChange(_ positionChange: CGFloat) {
         let currentItemCount = collectionView.numberOfItems(inSection: 0)
         
-        let itemsDelta = positionChange / 40
+        let itemsDelta = positionChange / itemWidth
         let roundedDelta = round(itemsDelta)
         
         // Check if position change surpasses threshold to add or remove items
@@ -310,7 +316,7 @@ private extension TimelineClip {
     
     func centerContentOffset() {
         let collectionViewWidth = collectionView.bounds.width
-        let contentWidth = CGFloat(numberOfItems) * 40
+        let contentWidth = CGFloat(numberOfItems) * itemWidth
         let targetOffsetX = (collectionViewWidth - contentWidth ) / 2
 
         if contentWidth < collectionViewWidth {
@@ -359,17 +365,17 @@ private extension TimelineClip {
 
                 UIView.animate(withDuration: 0.2) { [unowned self] in
                     collectionView.performBatchUpdates({
-                        if shouldAddItem && currentItemCount < 40 {
+                        if shouldAddItem && currentItemCount < Int(itemWidth) {
                             collectionView.insertItems(at: [IndexPath(item: currentItemCount, section: 0)])
                             numberOfItems = currentItemCount + 1
                             UIView.animate(withDuration: 0.1) {
-                                self.collectionView.contentOffset.x += 40 / 2
+                                self.collectionView.contentOffset.x += self.itemWidth / 2
                             }
                         } else if !shouldAddItem && currentItemCount > 5 {
                             collectionView.deleteItems(at: [IndexPath(item: currentItemCount - 1, section: 0)])
                             numberOfItems = currentItemCount - 1
                             UIView.animate(withDuration: 0.1) {
-                                self.collectionView.contentOffset.x -= 40 / 2
+                                self.collectionView.contentOffset.x -= self.itemWidth / 2
                             }
                         }
                     }, completion: nil)
