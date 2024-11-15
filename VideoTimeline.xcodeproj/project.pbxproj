@@ -17,7 +17,7 @@
 		2560BD862CD93E60009CE7F3 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 2560BD852CD93E60009CE7F3 /* Assets.xcassets */; };
 		2560BD892CD93E60009CE7F3 /* Base in Resources */ = {isa = PBXBuildFile; fileRef = 2560BD882CD93E60009CE7F3 /* Base */; };
 		2560BD982CD986C1009CE7F3 /* TimelineClipView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2560BD972CD986C1009CE7F3 /* TimelineClipView.swift */; };
-		25941AD92CDABA8700CD3209 /* TrimmingHandlerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25941AD82CDABA8700CD3209 /* TrimmingHandlerView.swift */; };
+		25941AD92CDABA8700CD3209 /* TrimmingHandleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25941AD82CDABA8700CD3209 /* TrimmingHandleView.swift */; };
 		25B019EB2CE4AEE100F079E7 /* TimelineClipCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25B019EA2CE4AEE100F079E7 /* TimelineClipCollectionViewCell.swift */; };
 /* End PBXBuildFile section */
 
@@ -34,7 +34,7 @@
 		2560BD882CD93E60009CE7F3 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		2560BD8A2CD93E60009CE7F3 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		2560BD972CD986C1009CE7F3 /* TimelineClipView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimelineClipView.swift; sourceTree = "<group>"; };
-		25941AD82CDABA8700CD3209 /* TrimmingHandlerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrimmingHandlerView.swift; sourceTree = "<group>"; };
+		25941AD82CDABA8700CD3209 /* TrimmingHandleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrimmingHandleView.swift; sourceTree = "<group>"; };
 		25B019EA2CE4AEE100F079E7 /* TimelineClipCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimelineClipCollectionViewCell.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -103,7 +103,7 @@
 			isa = PBXGroup;
 			children = (
 				2560BD972CD986C1009CE7F3 /* TimelineClipView.swift */,
-				25941AD82CDABA8700CD3209 /* TrimmingHandlerView.swift */,
+				25941AD82CDABA8700CD3209 /* TrimmingHandleView.swift */,
 				255ADD1C2CDC4AFB0005E3E0 /* TrimmingHandlerViewModel.swift */,
 			);
 			path = CustomViews;
@@ -183,7 +183,7 @@
 				2560BD812CD93E5F009CE7F3 /* VideoTimelineController.swift in Sources */,
 				25B019EB2CE4AEE100F079E7 /* TimelineClipCollectionViewCell.swift in Sources */,
 				255ADD192CDBDB610005E3E0 /* PageContentController.swift in Sources */,
-				25941AD92CDABA8700CD3209 /* TrimmingHandlerView.swift in Sources */,
+				25941AD92CDABA8700CD3209 /* TrimmingHandleView.swift in Sources */,
 				255ADD1D2CDC4AFB0005E3E0 /* TrimmingHandlerViewModel.swift in Sources */,
 				2560BD7D2CD93E5F009CE7F3 /* AppDelegate.swift in Sources */,
 				2560BD982CD986C1009CE7F3 /* TimelineClipView.swift in Sources */,

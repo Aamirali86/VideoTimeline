@@ -14,16 +14,8 @@ final class TimelineClipView: UIView {
     
     private let overlayView = UIView()
     private var collectionView: UICollectionView!
-    private let leftHandle = UIView()
-    private let rightHandle = UIView()
-    private let topBoundaryLayer = CALayer()
-    private let bottomBoundaryLayer = CALayer()
+    private var trimmingHandle: TrimmingHandleView!
 
-    // Minimum distance between handlers to avoid intersaction
-    let minimumTrimLength: CGFloat = 0.2
-    
-    private let handleWidth: CGFloat = 15.0
-    private let handleHeight: CGFloat = 80.0
     private let itemWidth: CGFloat = 40
     private let itemHeight: CGFloat = 80
     private var numberOfItems = 5
@@ -34,23 +26,6 @@ final class TimelineClipView: UIView {
     let colorPattern: [UIColor] = [
         .red, .blue, .green, .yellow, .purple, .brown, .cyan, .magenta, .orange, .darkGray
     ]
-
-    // Maintaining the state of trimming handlers
-    private var initialStartThumbX: CGFloat = 0
-    private var initialEndThumbX: CGFloat = 0
-    private var initialScale: CGFloat = 1.0
-    
-    private(set) var startValue: CGFloat = 0 {
-        didSet {
-            startValue = max(0, min(startValue, endValue - minimumTrimLength))
-        }
-    }
-    
-    private(set) var endValue: CGFloat = 1 {
-        didSet {
-            endValue = max(startValue + minimumTrimLength, min(endValue, 1))
-        }
-    }
 
     // Indicating center of clip view
     private let centerIndicatorLine: UIView = {
@@ -63,10 +38,11 @@ final class TimelineClipView: UIView {
 
     init() {
         super.init(frame: .zero)
+        trimmingHandle = TrimmingHandleView(viewModel: TrimmingHandlerViewModel())
+        trimmingHandle.delegate = self
         setupOverlayView()
         setupView()
         setupGestures()
-        bindViewModel()
     }
 
     required init?(coder: NSCoder) {
@@ -75,22 +51,16 @@ final class TimelineClipView: UIView {
     
     override func layoutSubviews() {
         super.layoutSubviews()
-        updateFrames()
+        trimmingHandle.updateFrames()
         addBorderToCollectionView()
     }
 
     // Update frame and border when content size changes
     override func observeValue(forKeyPath keyPath: String?, of object: Any?, change: [NSKeyValueChangeKey : Any]?, context: UnsafeMutableRawPointer?) {
         if keyPath == "contentSize" {
+            trimmingHandle.updateFrames()
             addBorderToCollectionView()
-            updateFrames()
         }
-    }
-}
-
-// MARK: Binding
-private extension TimelineClipView {
-    func bindViewModel() {
     }
 }
 
@@ -115,11 +85,11 @@ private extension TimelineClipView {
         collectionView.delegate = self
         collectionView.register(TimelineClipCollectionViewCell.self, forCellWithReuseIdentifier: TimelineClipCollectionViewCell.identifier)
         collectionView.addObserver(self, forKeyPath: "contentSize", options: [.new], context: nil)
-        
+
         // Center align clip view initially
-        let centerOffset = UIScreen.main.bounds.width / 2 - layout.itemSize.width / 2 - 12
-        collectionView.contentInset = UIEdgeInsets(top: 0, left: centerOffset, bottom: 0, right: centerOffset)
-        collectionView.contentOffset = CGPoint(x: -(numberOfItems * 30)/2, y: 0)
+        let centerInset = UIScreen.main.bounds.width / 2 - layout.itemSize.width / 2
+        collectionView.contentInset = UIEdgeInsets(top: 0, left: centerInset, bottom: 0, right: centerInset)
+        collectionView.contentOffset = CGPoint(x: -(numberOfItems * 35)/2, y: 0)
 
         addSubview(collectionView)
         bringSubviewToFront(collectionView)
@@ -131,8 +101,9 @@ private extension TimelineClipView {
             collectionView.bottomAnchor.constraint(equalTo: bottomAnchor, constant: -20),
             collectionView.heightAnchor.constraint(equalToConstant: itemHeight)
         ])
-        
-        setupHandles()
+        collectionView.layoutIfNeeded()
+        collectionView.addSubview(trimmingHandle)
+        trimmingHandle.frame = CGRect(x: 0, y: 0, width: collectionView.bounds.width, height: itemHeight)
         setupCenterIndicatorLine()
     }
     
@@ -147,30 +118,12 @@ private extension TimelineClipView {
         borderLayer.borderWidth = 2
         borderLayer.frame = CGRect(x: 0, y: 0, width: collectionView.contentSize.width, height: collectionView.bounds.height)
         collectionView.layer.addSublayer(borderLayer)
-        
-        collectionView.bringSubviewToFront(leftHandle)
-        collectionView.bringSubviewToFront(rightHandle)
-        topBoundaryLayer.zPosition = 1
-        bottomBoundaryLayer.zPosition = 1
-    }
-    
-    func setupHandles() {
-        collectionView.layoutIfNeeded()
-        
-        leftHandle.backgroundColor = .white
-        collectionView.addSubview(leftHandle)
-        
-        rightHandle.backgroundColor = .white
-        collectionView.addSubview(rightHandle)
 
-        topBoundaryLayer.backgroundColor = UIColor.white.cgColor
-        collectionView.layer.addSublayer(topBoundaryLayer)
-        
-        bottomBoundaryLayer.backgroundColor = UIColor.white.cgColor
-        collectionView.layer.addSublayer(bottomBoundaryLayer)
-        
-        leftHandle.isUserInteractionEnabled = true
-        rightHandle.isUserInteractionEnabled = true
+        trimmingHandle.frame = CGRect(x: 0, y: 0, width: collectionView.bounds.width, height: itemHeight)
+        collectionView.bringSubviewToFront(trimmingHandle)
+        collectionView.bringSubviewToFront(trimmingHandle.endThumbView)
+        trimmingHandle.topBoundaryLayer.zPosition = 1
+        trimmingHandle.bottomBoundaryLayer.zPosition = 1
     }
     
     func setupOverlayView() {
@@ -193,7 +146,6 @@ private extension TimelineClipView {
         NSLayoutConstraint.activate([
             centerIndicatorLine.centerXAnchor.constraint(equalTo: collectionView.centerXAnchor),
             centerIndicatorLine.centerYAnchor.constraint(equalTo: collectionView.centerYAnchor),
-            
             centerIndicatorLine.widthAnchor.constraint(equalToConstant: 4),
             centerIndicatorLine.heightAnchor.constraint(equalTo: collectionView.heightAnchor, multiplier: 1.5)
         ])
@@ -202,20 +154,6 @@ private extension TimelineClipView {
     func setupGestures() {
         let pinchGesture = UIPinchGestureRecognizer(target: self, action: #selector(handlePinchGesture(_:)))
         collectionView.addGestureRecognizer(pinchGesture)
-
-        let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTapGesture(_:)))
-        overlayView.addGestureRecognizer(tapGesture)
-        
-        let startThumbPanGesture = UIPanGestureRecognizer(target: self, action: #selector(handleStartThumbPan(_:)))
-        let endThumbPanGesture = UIPanGestureRecognizer(target: self, action: #selector(handleEndThumbPan(_:)))
-        leftHandle.addGestureRecognizer(startThumbPanGesture)
-        rightHandle.addGestureRecognizer(endThumbPanGesture)
-        
-        // To prioritize trimming gestures, make sure they don't conflict with pager gestures
-        if let pagerGesture = superview?.gestureRecognizers?.first {
-            startThumbPanGesture.require(toFail: pagerGesture)
-            endThumbPanGesture.require(toFail: pagerGesture)
-        }
     }
 
     func randomColor() -> UIColor {
@@ -225,98 +163,6 @@ private extension TimelineClipView {
             blue: CGFloat.random(in: 0...1),
             alpha: 1.0
         )
-    }
-    
-    func updateStartValue(to value: CGFloat) {
-        startValue = value
-    }
-
-    func updateEndValue(to value: CGFloat) {
-        endValue = value
-    }
-    
-    func updateFrames() {
-        let startThumb = positionForValue(startValue)
-        let endThumb = positionForValue(endValue)
-        
-        CATransaction.begin()
-        CATransaction.setDisableActions(true)
-
-        // Updating trim frame once dragged
-        leftHandle.frame = CGRect(x: startThumb, y: 0, width: handleWidth, height: handleHeight)
-        rightHandle.frame = CGRect(x: endThumb - handleWidth, y: 0, width: handleWidth, height: handleHeight)
-        
-        let boundaryWidth = endThumb - startThumb
-        topBoundaryLayer.frame = CGRect(x: startThumb, y: -2, width: boundaryWidth, height: 4)
-        bottomBoundaryLayer.frame = CGRect(x: startThumb, y: handleHeight - 2, width: boundaryWidth, height: 4)
-        
-        CATransaction.commit()
-    }
-    
-    func updateLayout() {
-        let start = positionForValue(startValue)
-        let end = positionForValue(endValue)
-        frame.origin.x = start
-        frame.size.width = end - start
-    }
-    
-    func positionForValue(_ value: CGFloat) -> CGFloat {
-        collectionView.contentSize.width * (value - minimumValue) / (maximumValue - minimumValue)
-    }
-
-    func valueForPosition(_ position: CGFloat) -> CGFloat {
-        minimumValue + (maximumValue - minimumValue) * position / collectionView.contentSize.width
-    }
-    
-    func updateHighlighting(for state: UIGestureRecognizer.State) {
-        let color: UIColor = (state == .began || state == .changed) ? .yellow : .white
-        leftHandle.backgroundColor = color
-        rightHandle.backgroundColor = color
-        topBoundaryLayer.backgroundColor = color.cgColor
-        bottomBoundaryLayer.backgroundColor = color.cgColor
-    }
-    
-    // Remove items from collection on trimming
-    func updateCollectionViewForPositionChange(_ positionChange: CGFloat) {
-        let currentItemCount = collectionView.numberOfItems(inSection: 0)
-        
-        let itemsDelta = positionChange / itemWidth
-        let roundedDelta = round(itemsDelta)
-        
-        // Check if position change surpasses threshold to add or remove items
-        if abs(roundedDelta) >= 1 {
-            
-            UIView.animate(withDuration: 0.2) { [unowned self] in
-                self.collectionView.performBatchUpdates({
-                    if roundedDelta < 0 {
-                        let newItemCount = currentItemCount + Int(roundedDelta)
-                        guard newItemCount > 2 else { return }
-                        let indexPathsToRemove = (newItemCount..<currentItemCount).map { IndexPath(item: $0, section: 0) }
-                        collectionView.deleteItems(at: indexPathsToRemove)
-                        numberOfItems = newItemCount
-                    } else {
-                        let newItemCount = currentItemCount - Int(roundedDelta)
-                        guard newItemCount > 2 else { return }
-                        let indexPathsToRemove = (0..<currentItemCount-newItemCount).map { IndexPath(item: $0, section: 0) }
-                        collectionView.deleteItems(at: indexPathsToRemove)
-                        numberOfItems = newItemCount
-                    }
-                }, completion: nil)
-            }
-            collectionView.reloadData()
-        }
-    }
-    
-    func centerContentOffset() {
-        let collectionViewWidth = collectionView.bounds.width
-        let contentWidth = CGFloat(numberOfItems) * itemWidth
-        let targetOffsetX = (collectionViewWidth - contentWidth ) / 2
-
-        if contentWidth < collectionViewWidth {
-            UIView.animate(withDuration: 0.2) {
-                self.collectionView.contentOffset.x = -targetOffsetX
-            }
-        }
     }
 }
 
@@ -337,6 +183,7 @@ extension TimelineClipView: UICollectionViewDataSource, UICollectionViewDelegate
 // MARK: Gesture Handlers
 private extension TimelineClipView {
     @objc private func handlePinchGesture(_ sender: UIPinchGestureRecognizer) {
+        var initialScale: CGFloat = 1.0
         switch sender.state {
         case .began:
             initialScale = sender.scale
@@ -345,7 +192,6 @@ private extension TimelineClipView {
         case .changed:
             let scaleDelta = sender.scale - initialScale
             accumulatedScaleChange += scaleDelta
-            initialScale = sender.scale
 
             // Only add or remove items when accumulated change surpasses threshold and debounce with time delay
             let scaleThreshold: CGFloat = 0.2
@@ -383,57 +229,6 @@ private extension TimelineClipView {
             break
         }
     }
-
-    @objc private func handleTapGesture(_ sender: UITapGestureRecognizer) {
-        debugPrint("TimelineView tapped!")
-    }
-}
-
-// MARK: Gesture handler
-extension TimelineClipView {
-    @objc func handleStartThumbPan(_ gesture: UIPanGestureRecognizer) {
-        let translation = gesture.translation(in: self)
-        switch gesture.state {
-        case .began:
-            initialStartThumbX = leftHandle.frame.origin.x
-        case .changed:
-            let newValue = valueForPosition(initialStartThumbX + translation.x)
-            updateStartValue(to: max(0, min(newValue, endValue - minimumTrimLength)))
-            updateLayout()
-            updateHighlighting(for: .changed)
-        case .ended, .cancelled:
-            let finalPosition = leftHandle.frame.origin.x
-            let positionChange = finalPosition - initialStartThumbX
-            updateCollectionViewForPositionChange(positionChange)
-            updateHighlighting(for: .ended)
-            updateStartValue(to: 0)
-            centerContentOffset()
-        default:
-            break
-        }
-    }
-
-    @objc func handleEndThumbPan(_ gesture: UIPanGestureRecognizer) {
-        let translation = gesture.translation(in: self)
-        switch gesture.state {
-        case .began:
-            initialEndThumbX = rightHandle.frame.origin.x + handleWidth
-        case .changed:
-            let newValue = valueForPosition(initialEndThumbX + translation.x)
-            updateEndValue(to: min(1, max(newValue, startValue + minimumTrimLength)))
-            updateLayout()
-            updateHighlighting(for: .changed)
-        case .ended, .cancelled:
-            let finalPosition = rightHandle.frame.origin.x
-            let positionChange = finalPosition - initialEndThumbX
-            updateCollectionViewForPositionChange(positionChange)
-            updateHighlighting(for: .ended)
-            updateEndValue(to: 1)
-            centerContentOffset()
-        default:
-            break
-        }
-    }
 }
 
 extension TimelineClipView: UIScrollViewDelegate {
@@ -442,6 +237,65 @@ extension TimelineClipView: UIScrollViewDelegate {
         if let indexPath = collectionView.indexPathForItem(at: centerPoint),
            let centerCell = collectionView.cellForItem(at: indexPath) {
             overlayView.backgroundColor = centerCell.backgroundColor
+        }
+    }
+}
+
+extension TimelineClipView: TrimmingHandleViewDelegate {
+    func positionForValue(_ value: CGFloat) -> CGFloat {
+        collectionView.contentSize.width * (value - minimumValue) / (maximumValue - minimumValue)
+    }
+
+    func valueForPosition(_ position: CGFloat) -> CGFloat {
+        minimumValue + (maximumValue - minimumValue) * position / collectionView.contentSize.width
+    }
+    
+    func updateLayout(_ startValue: CGFloat, _ endValue: CGFloat) {
+        let start = positionForValue(startValue)
+        let end = positionForValue(endValue)
+        frame.origin.x = start
+        frame.size.width = end - start
+    }
+    
+    func centerContentOffset() {
+        let collectionViewWidth = collectionView.bounds.width
+        let contentWidth = CGFloat(numberOfItems) * itemWidth
+        let targetOffsetX = (collectionViewWidth - contentWidth ) / 2
+
+        if contentWidth < collectionViewWidth {
+            UIView.animate(withDuration: 0.2) {
+                self.collectionView.contentOffset.x = -targetOffsetX
+            }
+        }
+    }
+    
+    // Remove items from collection on trimming
+    func updateCollectionViewForPositionChange(_ position: CGFloat) {
+        let currentItemCount = collectionView.numberOfItems(inSection: 0)
+        
+        let itemsDelta = position / itemWidth
+        let roundedDelta = round(itemsDelta)
+        
+        // Check if position change surpasses threshold to add or remove items
+        if abs(roundedDelta) >= 1 {
+            UIView.animate(withDuration: 0.2) { [unowned self] in
+                self.collectionView.performBatchUpdates({
+                    if roundedDelta < 0 {
+                        let newItemCount = currentItemCount + Int(roundedDelta)
+                        guard newItemCount > 2 else { return }
+                        let indexPathsToRemove = (newItemCount..<currentItemCount).map { IndexPath(item: $0, section: 0) }
+                        collectionView.deleteItems(at: indexPathsToRemove)
+                        numberOfItems = newItemCount
+                    } else {
+                        let newItemCount = currentItemCount - Int(roundedDelta)
+                        guard newItemCount > 2 else { return }
+                        let indexPathsToRemove = (0..<currentItemCount-newItemCount).map { IndexPath(item: $0, section: 0) }
+                        collectionView.deleteItems(at: indexPathsToRemove)
+                        numberOfItems = newItemCount
+                    }
+                }, completion: nil)
+            }
+            collectionView.reloadData()
         }
     }
 }
