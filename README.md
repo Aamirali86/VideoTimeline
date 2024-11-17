@@ -1,6 +1,9 @@
 # VideoTimeline
 This project demonstrates the implementation of a custom TimelineView for a video editing interface inspired by the CapCut application. The TimelineView supports essential editing interactions like zooming, trimming, and track manipulation, its just UI implementation just to simulate the timeline video editor. The app is built using UIKit, with an emphasis on clean architecture through the MVVM pattern.
 
+# How to use
+Added two trimming controls in this application. The one in the middle have multiple trimming controls on each section, where you have more control on video clip to trim it from multiple locations. Second view on the bottom have single trim and zoom in and out control with an ability to keep the clip in center. Please check out demo videos for reference.
+
 ## Features
 - Multiple Tracks: The TimelineView includes multiple tracks that represent different video or audio segments. Each track is displayed as a horizontal strip, filled with color-coded blocks representing individual segments.
 - Pinch-to-Zoom Functionality: Users can zoom in and out on the timeline clip to get a detailed or overview view of the segment. The zooming effect is smooth and confined within the bounds of each clip, preventing overlap with adjacent images.
