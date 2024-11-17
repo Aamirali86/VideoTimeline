@@ -9,10 +9,12 @@ import UIKit
 
 final class VideoTimelineController: UIViewController {
     private let pagerController = VideoTimelinePagerController(transitionStyle: .scroll, navigationOrientation: .horizontal)
+    private var collectionView: TimelineCollectionView!
     
     override func viewDidLoad() {
         super.viewDidLoad()
         addPagerController()
+        addCollectionView()
     }
 }
 
@@ -29,6 +31,19 @@ private extension VideoTimelineController {
             pagerController.view.trailingAnchor.constraint(equalTo: view.trailingAnchor),
             pagerController.view.bottomAnchor.constraint(equalTo: view.bottomAnchor),
             pagerController.view.topAnchor.constraint(equalTo: view.topAnchor)
+        ])
+    }
+    
+    func addCollectionView() {
+        collectionView = TimelineCollectionView()
+        view.addSubview(collectionView)
+        
+        collectionView.translatesAutoresizingMaskIntoConstraints = false
+        NSLayoutConstraint.activate([
+            collectionView.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            collectionView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            collectionView.widthAnchor.constraint(equalTo: view.widthAnchor),
+            collectionView.heightAnchor.constraint(equalToConstant: 120)
         ])
     }
 }

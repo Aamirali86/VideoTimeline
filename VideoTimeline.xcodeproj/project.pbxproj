@@ -19,6 +19,10 @@
 		2560BD982CD986C1009CE7F3 /* TimelineClipView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2560BD972CD986C1009CE7F3 /* TimelineClipView.swift */; };
 		25941AD92CDABA8700CD3209 /* TrimmingHandleView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25941AD82CDABA8700CD3209 /* TrimmingHandleView.swift */; };
 		25B019EB2CE4AEE100F079E7 /* TimelineClipCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25B019EA2CE4AEE100F079E7 /* TimelineClipCollectionViewCell.swift */; };
+		25D5FEAA2CE8DF60001E0318 /* TimelineCollectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25D5FEA92CE8DF60001E0318 /* TimelineCollectionView.swift */; };
+		25D5FEAD2CE8DFA0001E0318 /* TimelineCollectionViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25D5FEAC2CE8DFA0001E0318 /* TimelineCollectionViewCell.swift */; };
+		25D5FEAF2CE8DFC5001E0318 /* TimelineClip.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25D5FEAE2CE8DFC5001E0318 /* TimelineClip.swift */; };
+		25D939202CE9E2960082AAE7 /* TimelineCustomLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = 25D9391F2CE9E2960082AAE7 /* TimelineCustomLayout.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -36,6 +40,10 @@
 		2560BD972CD986C1009CE7F3 /* TimelineClipView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimelineClipView.swift; sourceTree = "<group>"; };
 		25941AD82CDABA8700CD3209 /* TrimmingHandleView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrimmingHandleView.swift; sourceTree = "<group>"; };
 		25B019EA2CE4AEE100F079E7 /* TimelineClipCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimelineClipCollectionViewCell.swift; sourceTree = "<group>"; };
+		25D5FEA92CE8DF60001E0318 /* TimelineCollectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimelineCollectionView.swift; sourceTree = "<group>"; };
+		25D5FEAC2CE8DFA0001E0318 /* TimelineCollectionViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimelineCollectionViewCell.swift; sourceTree = "<group>"; };
+		25D5FEAE2CE8DFC5001E0318 /* TimelineClip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimelineClip.swift; sourceTree = "<group>"; };
+		25D9391F2CE9E2960082AAE7 /* TimelineCustomLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimelineCustomLayout.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -68,6 +76,8 @@
 		2560BD7B2CD93E5F009CE7F3 /* VideoTimeline */ = {
 			isa = PBXGroup;
 			children = (
+				25F7EF902CEA8D8300FB6E0A /* Layout */,
+				25D5FEAB2CE8DF79001E0318 /* Models */,
 				2560BD962CD986B4009CE7F3 /* CustomViews */,
 				2560BD912CD93EFE009CE7F3 /* Scenes */,
 				2560BD902CD93EA6009CE7F3 /* Resources */,
@@ -90,11 +100,12 @@
 		2560BD912CD93EFE009CE7F3 /* Scenes */ = {
 			isa = PBXGroup;
 			children = (
+				25F7EF922CEA8DA900FB6E0A /* CollectionView */,
+				25F7EF912CEA8D9700FB6E0A /* Cell */,
 				2560BD802CD93E5F009CE7F3 /* VideoTimelineController.swift */,
 				2560BD822CD93E5F009CE7F3 /* VideoTimelineController.storyboard */,
 				255ADD162CDBD8240005E3E0 /* VideoTimelinePagerController.swift */,
 				255ADD182CDBDB610005E3E0 /* PageContentController.swift */,
-				25B019EA2CE4AEE100F079E7 /* TimelineClipCollectionViewCell.swift */,
 			);
 			path = Scenes;
 			sourceTree = "<group>";
@@ -107,6 +118,39 @@
 				255ADD1C2CDC4AFB0005E3E0 /* TrimmingHandlerViewModel.swift */,
 			);
 			path = CustomViews;
+			sourceTree = "<group>";
+		};
+		25D5FEAB2CE8DF79001E0318 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				25D5FEAE2CE8DFC5001E0318 /* TimelineClip.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		25F7EF902CEA8D8300FB6E0A /* Layout */ = {
+			isa = PBXGroup;
+			children = (
+				25D9391F2CE9E2960082AAE7 /* TimelineCustomLayout.swift */,
+			);
+			path = Layout;
+			sourceTree = "<group>";
+		};
+		25F7EF912CEA8D9700FB6E0A /* Cell */ = {
+			isa = PBXGroup;
+			children = (
+				25D5FEAC2CE8DFA0001E0318 /* TimelineCollectionViewCell.swift */,
+				25B019EA2CE4AEE100F079E7 /* TimelineClipCollectionViewCell.swift */,
+			);
+			path = Cell;
+			sourceTree = "<group>";
+		};
+		25F7EF922CEA8DA900FB6E0A /* CollectionView */ = {
+			isa = PBXGroup;
+			children = (
+				25D5FEA92CE8DF60001E0318 /* TimelineCollectionView.swift */,
+			);
+			path = CollectionView;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -182,13 +226,17 @@
 			files = (
 				2560BD812CD93E5F009CE7F3 /* VideoTimelineController.swift in Sources */,
 				25B019EB2CE4AEE100F079E7 /* TimelineClipCollectionViewCell.swift in Sources */,
+				25D939202CE9E2960082AAE7 /* TimelineCustomLayout.swift in Sources */,
 				255ADD192CDBDB610005E3E0 /* PageContentController.swift in Sources */,
 				25941AD92CDABA8700CD3209 /* TrimmingHandleView.swift in Sources */,
 				255ADD1D2CDC4AFB0005E3E0 /* TrimmingHandlerViewModel.swift in Sources */,
 				2560BD7D2CD93E5F009CE7F3 /* AppDelegate.swift in Sources */,
 				2560BD982CD986C1009CE7F3 /* TimelineClipView.swift in Sources */,
 				255ADD172CDBD8240005E3E0 /* VideoTimelinePagerController.swift in Sources */,
+				25D5FEAF2CE8DFC5001E0318 /* TimelineClip.swift in Sources */,
 				2560BD7F2CD93E5F009CE7F3 /* SceneDelegate.swift in Sources */,
+				25D5FEAA2CE8DF60001E0318 /* TimelineCollectionView.swift in Sources */,
+				25D5FEAD2CE8DFA0001E0318 /* TimelineCollectionViewCell.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
